@@ -11,7 +11,7 @@ This data analysis project is about the toy sales in Mexico.You can find the dat
 
 ## Descriptions of Tables: 
 
-#### Products Table :                                                        
+#### Products Table : 🧸 🔫 🤖                                                      
 
 Product_ID : Product ID
 
@@ -23,7 +23,7 @@ Product_Cost :	Product cost ($USD)
 
 Product_Price :	Product retail price ($USD)
 
-#### Inventory Table :
+#### Inventory Table : 🔢
 
 Store_ID : Store ID
 
@@ -31,7 +31,7 @@ Product_ID :	Product ID
 
 Stock_On_Hand :	Stock quantity of the product in the store (inventory)
 
-#### Stores Table :
+#### Stores Table : 🏪
 
 Store_ID :	Store ID
 
@@ -43,7 +43,7 @@ Store_Location :	Location in the city where the store is located
 
 Store_Open_Date	: Date when the store was opened
 
-#### Sales Table :
+#### Sales Table : 💲 💰
 
 Sale_ID :	Sale ID
 
@@ -55,11 +55,12 @@ Product_ID :	Product ID
 
 Units :	Units sold
 
-#### Calendar Table :
+#### Calendar Table : 📅
 
 Date :	Calendar date
 
 ## Create Tables :
+
 
 #### Create Sales table
 
@@ -121,7 +122,7 @@ CREATE TABLE calendar (
 );
 ```
 
-## Case Study Questions: 
+## Case Study Questions: 📊 📈 📉
 
 1)What is the total sales revenue for each product category in each city?
 
@@ -155,7 +156,7 @@ CREATE TABLE calendar (
 
 16)Which month has the most sales?
 
-## Solutions :
+## Solutions : 🤔 
 
 #### 1)What is the total sales revenue for each product category in each city?
 ```sql
