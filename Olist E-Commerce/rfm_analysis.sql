@@ -3,21 +3,26 @@ max(invoicedate) from rfm
 group by 1
 order by 2 desc
 --son fatura tarihinden 1 gün sonrasını bugün olarak alacağım.Yani 2011-12-10
+
 select * from rfm where unitprice*quantity   <0
 --iadeler
+
 select count(distinct invoiceno),sum(unitprice*quantity) from rfm where customerid is null
 --üye olmayanların toplam alışverişleri
+
 select count(*) from rfm where description is null or description like ''
 --açıklaması olmayan faturalar
+
 select * from rfm where customerid is null or description like ''
 --customerid si olmayan müşteriler
-select * from rfm where invoiceno like 'C%' and quantity<=0
---iptal ve iade edilenler
---Sadece üye olan (customerid si olanlar) göre RFM hazırladım.
---Burada amacımız kullanıcıların sipariş alışkanlıklarını anlamak ve değerli kullanıcıları
---belirlemek olduğu için eksi değerleri ve customerid si olmayan kullanıcıları analize katmıyorum
 
---recency
+select * from rfm where invoiceno like 'C%' and quantity<=0
+--İptal ve iade edilenler
+--Sadece üye olan (customerid si olanlar) göre RFM hazırladım.
+--Burada amacımız kullanıcıların sipariş alışkanlıklarını anlamak ve değerli kullanıcıları belirlemek olduğu için eksi değerleri ve customerid si olmayan 
+--kullanıcıları analize katmıyorum
+
+--RECENCY
 
 SELECT 
 	CUSTOMERID,
@@ -33,7 +38,7 @@ ORDER BY
 	CUSTOMERID
 
 
---frequency
+--FREQUENCY
 
 SELECT 
 	CUSTOMERID,
@@ -47,7 +52,8 @@ GROUP BY
 	CUSTOMERID
 ORDER BY 
 	2 DESC
---monetary
+
+--MONETARY
 
 SELECT 
 	CUSTOMERID,
@@ -60,7 +66,10 @@ GROUP BY
 	CUSTOMERID
 ORDER BY 
 	2
+
+	
 --RFM
+	
 WITH RFM_VALUES AS (
 	SELECT 
 	 	CUSTOMERID,
@@ -113,7 +122,9 @@ SELECT *,
 	END AS CLIENT_SEGMENT
 FROM 
 	RFM_ANALYSIS;
---frequency 2
+
+
+--ALTERNATIVE FREQUENCY CALCULATION
 
 with frequency as (
 select 
