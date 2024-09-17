@@ -1,11 +1,13 @@
---Query filtrelemelerinde lazım olabilecek veya dikkat edilmesi gereken bazı bilgileri not 
---olması açısından buldum
+Query filtrelemelerinde lazım olabilecek veya dikkat edilmesi gereken bazı bilgileri not olması açısından buldum
+
 select avg(price) from order_items
 --120.65
+
 select avg (order_delivered_customer_date-order_purchase_timestamp) 
 from orders
 WHERE order_status NOT IN ('unavailable','canceled')
 --12 days 13:23:49
+
 with total_order as (
 select count(o.order_id) total_orders 
 from orders o
@@ -15,6 +17,7 @@ group by s.seller_id)
 select round(avg (total_orders),2) 
 from total_order
 --satılan adet ortalaması 36.40
+
 select p.payment_installments,count(o.order_id) 
 from payments p
 join orders o on p.order_id=o.order_id 
@@ -22,6 +25,7 @@ WHERE order_status NOT IN ('unavailable','canceled')
 group by 1 
 order by 2 desc
 --taksit ödeme sayıları
+
 select o.order_id,o.customer_id,o.order_status,
 c.customer_unique_id,c.customer_city,
 s.seller_city,
@@ -35,22 +39,22 @@ where
 o.customer_id='0aad2e31b3c119c26acb8a47768cd00a'
 and order_status NOT IN ('unavailable','canceled')
 --aynı order_id farklı şehirdeki satıcılardan alışveriş yapabiliyor
+
 select * from orders
 where order_approved_at  is null
 and order_status NOT IN ('unavailable','canceled')
---sipariş onayı olmadan teslim edilen veya üretilen siparişler var.bu yüzden filtrelemede 
---kullanmak için pek güvenilir değil.
+--sipariş onayı olmadan teslim edilen veya üretilen siparişler var.bu yüzden filtrelemede kullanmak için pek güvenilir değil.
 
 
 
 
---CASE 1 : Sipariş Analizi
---1: Aylık olarak order dağılımını inceleyiniz. Tarih verisi için order_approved_at 
---kullanılmalıdır.
+CASE 1 : SİPARİŞ ANALİZİ
+
+--1: Aylık olarak order dağılımını inceleyiniz. Tarih verisi için order_approved_at kullanılmalıdır.
 --NOT:
---iptal edilen ve mevcutta bulunmayan ürünleri filtrelemedim.
---order_approved_at kolonu boş olan fakat gönderilmiş veya hazırlanmış siparişler olduğu için
---null kolonu çıkıyor.
+--İptal edilen ve mevcutta bulunmayan ürünleri filtrelemedim.
+--order_approved_at kolonu boş olan fakat gönderilmiş veya hazırlanmış siparişler olduğu için null kolonu çıkıyor.
+
 SELECT 
 	date_trunc('month',order_approved_at)::date AS months,
 	COUNT (*)total_amount
@@ -58,13 +62,12 @@ FROM
 	orders 
 GROUP BY 
 	1
---2 :Aylık olarak order status kırılımında order sayılarını inceleyiniz. Sorgu sonucunda çıkan 
---outputu excel ile görselleştiriniz. Dramatik bir düşüşün ya da yükselişin olduğu aylar var mı? 
---Veriyi inceleyerek yorumlayınız.iptal edilen veya yolda olanları ayrı gösterebilirsin.
+	
+--2 :Aylık olarak order status kırılımında order sayılarını inceleyiniz. Sorgu sonucunda çıkan outputu excel ile görselleştiriniz. Dramatik bir düşüşün ya da 
+yükselişin olduğu aylar var mı? Veriyi inceleyerek yorumlayınız.iptal edilen veya yolda olanları ayrı gösterebilirsin.
 --NOT:
---Bir önceki soruda belirttiğim gibi , order_approved_at kolonu boş olan fakat gönderilmiş
---veya hazırlanmış siparişler olduğu için order_purchase_timestamp kolonunun daha güvenilir
---olacağını düşündüm.
+--Bir önceki soruda belirttiğim gibi , order_approved_at kolonu boş olan fakat gönderilmiş veya hazırlanmış siparişler olduğu için order_purchase_timestamp 
+--kolonunun daha güvenilir olacağını düşündüm.
 
 SELECT 
 	date_trunc('month',order_purchase_timestamp)::date AS months,
@@ -92,12 +95,11 @@ GROUP BY
 ORDER BY 
 	1
 	
---3 :Ürün kategorisi kırılımında sipariş sayılarını inceleyiniz. Özel günlerde öne 
---çıkan kategoriler nelerdir? 
---Örneğin yılbaşı, sevgililer günü…Her kategoriden ne kadar sipariş var mesela yılbaşında
+--3 :Ürün kategorisi kırılımında sipariş sayılarını inceleyiniz. Özel günlerde öne çıkan kategoriler nelerdir? Örneğin yılbaşı, sevgililer günü…
+--Her kategoriden ne kadar sipariş var mesela yılbaşında
+--NOT:
+--Sipariş verme tarihini Black Friday'e göre aldım.Brezilya'da Black Friday indirimleri yaklaşık 1 hafta sürüyor ve genelde kasımın 20 29'u  gibi kutlanıyor.
 
----Sipariş verme tarihini Black Friday'e göre aldım.Brezilya'da Black Friday indirimleri
---yaklaşık 1 hafta sürüyor ve genelde kasımın 20 29'u  gibi kutlanıyor.
 WITH BLACKFRIDAY AS (
 SELECT 
 	P.PRODUCT_CATEGORY_NAME,
@@ -170,19 +172,16 @@ ORDER BY
 	BLACKFRIDAY_PERCENTAGE-SALES_NOT_BF_PERCENTAGE DESC
 
 
---Dünya'nın genelinde olduğu gibi Brezilya'da da en çok alışveriş yapılan dönemlerden
---biri olduğu için bu dönemi inceledim.Genel siparişlerde olduğu gibi bu dönemde de
---en çok satış yapılan kategori bed_bath_table kategorisi.En çok sipariş verilen 2. ürün 
---olmayı başaran ise mobilya dekorasyon ürünleri oluyor.Normalde genel olarak
---pahalı diyebileceğimiz bu kategorideki ürünlerde yapılan Black Friday indiriminin sipariş
---sayısını arttırdığını düşünüyorum.Aynı durum oyuncaklar kategorisinde de görülebilir.
+--Dünya'nın genelinde olduğu gibi Brezilya'da da en çok alışveriş yapılan dönemlerden biri olduğu için bu dönemi inceledim.Genel siparişlerde olduğu gibi bu 
+--dönemde de en çok satış yapılan kategori bed_bath_table kategorisi.En çok sipariş verilen 2. ürün olmayı başaran ise mobilya dekorasyon ürünleri oluyor.Normalde 
+--genel olarak pahalı diyebileceğimiz bu kategorideki ürünlerde yapılan Black Friday indiriminin sipariş sayısını arttırdığını düşünüyorum.Aynı durum oyuncaklar 
+--kategorisinde de görülebilir.
 
---4 :Haftanın günleri(pazartesi, perşembe, ….) ve ay günleri (ayın 1’i,2’si gibi) bazında order 
---sayılarını inceleyiniz. Yazdığınız sorgunun outputu ile excel’de bir görsel oluşturup 
---yorumlayınız.
----NOT : siparişin verildiği tarihten aldım.
----İptal ve mevcutta bulunmayan siparişleri filtreledim.
----Soruda vurgulanan order sayısı olduğu için to_char kullandım.
+--4 :Haftanın günleri(pazartesi, perşembe, ….) ve ay günleri (ayın 1’i,2’si gibi) bazında order sayılarını inceleyiniz. Yazdığınız sorgunun outputu ile excel’de 
+--bir görsel oluşturup yorumlayınız.
+	
+---NOT : Siparişin verildiği tarihten aldım.İptal ve mevcutta bulunmayan siparişleri filtreledim.Soruda vurgulanan order sayısı olduğu için to_char kullandım.
+
 SELECT 
 	INITCAP(TO_CHAR(ORDER_PURCHASE_TIMESTAMP,'day'))DAYS,
 	COUNT(DISTINCT ORDER_ID) TOTAL_ORDERS_PURCHASED
@@ -207,20 +206,17 @@ GROUP BY
 	1
 ORDER BY 
 	2 DESC
---Brezilya da Black Friday 22-29 kasım tarihleri arasında kutlanıyor.Bu yüzden alışveriş
---sayısının ayın 24'nde diğer günlere göre yüksek olması beklenen bir durum..
+--Brezilya da Black Friday 22-29 kasım tarihleri arasında kutlanıyor.Bu yüzden alışveriş sayısının ayın 24'nde diğer günlere göre yüksek olması beklenen bir durum..
 
---CASE 2 : Müşteri Analizi 
---1 :Hangi şehirlerdeki müşteriler daha çok alışveriş yapıyor? Müşterinin şehrini en çok sipariş 
---verdiği şehir olarak belirleyip analizi ona göre yapınız. 
---Örneğin; Sibel Çanakkale’den 3, Muğla’dan 8 ve İstanbul’dan 10 sipariş olmak üzere 3 farklı 
---şehirden sipariş veriyor.Sibel’in şehrini en çok sipariş verdiği şehir olan İstanbul olarak 
---seçmelisiniz ve Sibel’in yaptığı siparişleri İstanbul’dan 21 sipariş vermiş şekilde görünmelidir.
+CASE 2 : MÜŞTERİ ANALİZİ
+	
+--1 :Hangi şehirlerdeki müşteriler daha çok alışveriş yapıyor? Müşterinin şehrini en çok sipariş verdiği şehir olarak belirleyip analizi ona göre yapınız. 
+--Örneğin; Sibel Çanakkale’den 3, Muğla’dan 8 ve İstanbul’dan 10 sipariş olmak üzere 3 farklı şehirden sipariş veriyor.Sibel’in şehrini en çok sipariş verdiği şehir 
+--olan İstanbul olarak seçmelisiniz ve Sibel’in yaptığı siparişleri İstanbul’dan 21 sipariş vermiş şekilde görünmelidir.
 
 --NOTLAR:
---1.iptal edilen ve mevcutta bulunmayan siparişleri denklemden çıkardım.
---2.ROW_NUMBER() yerine RANK() kullandığımda bazı müşteriler farklı şehirlerden eşit sayıda
---sipariş verdikleri için o iki şehir de yazacaktı.Tek şehir görünmesi için Row kullandım.
+--1.İptal edilen ve mevcutta bulunmayan siparişleri denklemden çıkardım.
+--2.ROW_NUMBER() yerine RANK() kullandığımda bazı müşteriler farklı şehirlerden eşit sayıda sipariş verdikleri için o iki şehir de yazacaktı.Tek şehir görünmesi için Row kullandım.
 
 WITH CITY_RANK AS(
 	SELECT 
@@ -271,13 +267,11 @@ ORDER BY
 	2 DESC
 
 
---CASE 3: Satıcı Analizi
---1 :Siparişleri en hızlı şekilde müşterilere ulaştıran satıcılar kimlerdir? Top 5 getiriniz. 
---Bu satıcıların order sayıları ile ürünlerindeki yorumlar ve puanlamaları inceleyiniz ve 
---yorumlayınız.
---Yukarıda ortalama satış adetini 36 bulduğum için 36 orderdan fazla gönderim yapanları aldım.
---siparişin verildiği ve müşterinin eline ulaştığı zaman aralığını aldım.
---YORUMLA
+CASE 3: SATICI ANALİZİ
+	
+--1 :Siparişleri en hızlı şekilde müşterilere ulaştıran satıcılar kimlerdir? Top 5 getiriniz. Bu satıcıların order sayıları ile ürünlerindeki yorumlar ve puanlamaları inceleyiniz ve yorumlayınız.
+--Yukarıda ortalama satış adetini 36 bulduğum için 36 orderdan fazla gönderim yapanları aldım.Siparişin verildiği ve müşterinin eline ulaştığı zaman aralığını aldım.
+
 
 WITH DELIVERY_TIMES AS(
 	SELECT 
@@ -320,10 +314,8 @@ WITH DELIVERY_TIMES AS(
 	LIMIT 
 		5
 
---2 :Hangi satıcılar daha fazla kategoriye ait ürün satışı yapmaktadır? 
--- Fazla kategoriye sahip satıcıların order sayıları da fazla mı? 
---NOT:kategorisi boş olmayanları ele aldım 
---iptal edilen ve mevcutta bulunmayan siparişleri denklemden çıkardım.
+--2 :Hangi satıcılar daha fazla kategoriye ait ürün satışı yapmaktadır? Fazla kategoriye sahip satıcıların order sayıları da fazla mı? 
+--NOT:Kategorisi boş olmayanları ele aldım.İptal edilen ve mevcutta bulunmayan siparişleri denklemden çıkardım.
 
 
 WITH CATEGORY_SALES AS (
@@ -365,11 +357,12 @@ WITH CATEGORY_SALES AS (
 		4 DESC
 
 
---CASE 4 : Payment Analizi
---1 :Ödeme yaparken taksit sayısı fazla olan kullanıcılar en çok hangi bölgede yaşamaktadır? 
---Bu çıktıyı yorumlayınız.
+CASE 4 : PAYMENT ANALİZİ
+	
+--1 :Ödeme yaparken taksit sayısı fazla olan kullanıcılar en çok hangi bölgede yaşamaktadır? Bu çıktıyı yorumlayınız.
 
 --ORTALAMA TAKSİT SAYISINI 3 DEN FAZLASINI ALDIM.
+
 SELECT 
 	C.CUSTOMER_STATE,
 	COUNT(DISTINCT O.ORDER_ID)TOTAL_DISTINCT_ORDER
@@ -385,9 +378,10 @@ GROUP BY
 	1
 ORDER BY 
 	2 DESC
---taksitli alışverişi daha çok kullanan bölgeler aynı zamanda ülkenin nüfusunun en yoğun
---olduğu bölgeler,az olan bölgeler ise nüfusun az olduğu bölgeler.Burada taksit ve alışveriş
---adetlerinin nüfus ile doğru orantılı olduğunu görebiliyoruz.
+
+--Taksitli alışverişi daha çok kullanan bölgeler aynı zamanda ülkenin nüfusunun en yoğun olduğu bölgeler,az olan bölgeler ise nüfusun az olduğu bölgeler.Burada 
+--taksit ve alışveriş adetlerinin nüfus ile doğru orantılı olduğunu görebiliyoruz.
+	
 with toplam as (
 select  c.customer_state,
 count(distinct o.order_id)total_distinct_order
@@ -424,15 +418,14 @@ order by 2 desc
 	join pesin p on t.customer_state=p.customer_state
 	join taksit ta on p.customer_state=ta.customer_state
 	order by taksit desc
---Bence bu şekilde daha sağlıklı bilgi edinebiliriz.Bölgelerin pesin ve taksitli ödemelerine
---bakıp o bölgenin ekonomik durumu hakkında daha rahat yorum yapabiliriz.Örneğin yukarıda
---3 taksitten fazla taksitle ödeme yapanlar SP bölgesinde en çok.Fakat burada gördüğümüz gibi
---yüzde olarak taksit seçeneğini daha az kullanan bölge yani taksitsiz alışverişin daha fazla
---olduğu bölge.
+
+--Bence bu şekilde daha sağlıklı bilgi edinebiliriz.Bölgelerin pesin ve taksitli ödemelerine bakıp o bölgenin ekonomik durumu hakkında daha rahat yorum yapabiliriz.
+--Örneğin yukarıda 3 taksitten fazla taksitle ödeme yapanlar SP bölgesinde en çok.Fakat burada gördüğümüz gibi yüzde olarak taksit seçeneğini daha az kullanan bölge
+--yani taksitsiz alışverişin daha fazla olduğu bölge.
 
 
---2 :Ödeme tipine göre başarılı order sayısı ve toplam başarılı ödeme tutarını hesaplayınız. 
---En çok kullanılan ödeme tipinden en az olana göre sıralayınız.
+--2 :Ödeme tipine göre başarılı order sayısı ve toplam başarılı ödeme tutarını hesaplayınız. En çok kullanılan ödeme tipinden en az olana göre sıralayınız.
+
 SELECT 
 	P.PAYMENT_TYPE,
 	COUNT(DISTINCT O.ORDER_ID)ORDER_COUNT,
@@ -448,8 +441,8 @@ GROUP BY
 ORDER BY 
 	2 DESC
 
---3 :Tek çekimde ve taksitle ödenen siparişlerin kategori bazlı analizini yapınız. En çok hangi 
---kategorilerde taksitle ödeme kullanılmaktadır?
+--3 :Tek çekimde ve taksitle ödenen siparişlerin kategori bazlı analizini yapınız. En çok hangi kategorilerde taksitle ödeme kullanılmaktadır?
+
 WITH PAYMENT_STYLE AS (
 	SELECT 
 		PR.PRODUCT_CATEGORY_NAME,
